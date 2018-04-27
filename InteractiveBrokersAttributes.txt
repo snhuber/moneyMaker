@@ -1,0 +1,10 @@
+Interactive Brokers Variables
+
+Security Type - secType - 'OPT'
+Put/Call - right = 'C' or 'P'
+Strike Price - strike
+Expiry - lastTradeDateOrContractMonth = YYYYMMDD
+Exchange - exchange = 'STRING'
+Currency - currency = 'USD'
+Local Symbol - localSymbol = 'TICKER YYMMDDr(strikePriceinWierdFormat-00095000 for $95.0)'
+
