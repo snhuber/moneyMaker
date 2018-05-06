@@ -1,6 +1,5 @@
 import pandas as pd
-
-EXCLUDE_SYMBOLS = ["ALZH", "CDAY", "DFBH", "ELOX", "LASR", "LTN^"]
+import datetime
 
 def getAllSymbols():
     return pd.read_json("https://api.iextrading.com/1.0/ref-data/symbols")
@@ -16,5 +15,14 @@ def getHistoricalData(symbol, timeSpan):
 
 def getBatchHistoricalData(symbols, timeSpan):
     assert len(symbols) <= 100
-    print("Getting batch hv")
     return pd.read_json("https://api.iextrading.com/1.0/stock/market/batch?symbols="+",".join(symbols)+"&types=chart&range="+timeSpan)
+
+def getEarnings(symbol):
+    return pd.read_json("https://api.iextrading.com/1.0/stock/"+symbol+"/earnings")
+
+def getBatchEarnings(symbols):
+    assert len(symbols) <= 100
+    return pd.read_json("https://api.iextrading.com/1.0/stock/market/batch?symbols="+",".join(symbols)+"&types=earnings")
+
+def getDaysData(symbol, date):
+    return pd.read_json("https://api.iextrading.com/1.0/stock/"+symbol+"/chart/date/"+datetime.datetime.strftime(date, "%Y%m%d"))
