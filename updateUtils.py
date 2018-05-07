@@ -6,6 +6,19 @@ import datetime
 from earnings import Earning
 import pandas as pd
 
+def addNewSymbols():
+    symbolsData = iexUtils.getAllSymbols()
+    symbolsData = iexUtils.filterEnabledSymbols(symbolsData)
+    symbolsData = iexUtils.filterCommonStockSymbols(symbolsData)
+    symbols = symbolsData.symbol.tolist()
+
+    stockData = joblib.load('historicalStockData.pkl')['data']
+
+    for sym, row in stockData.iterrows():
+        if sym not in stockData.index:
+            print("Adding symbol:", sym)
+            stockData.loc[sym] = [None, None, None, None, None, None]
+
 def tryFillNaNs():
     stockData = joblib.load('historicalStockData.pkl')['data']
 
