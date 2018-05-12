@@ -40,6 +40,9 @@ def updateSymbol(sym):
     stockData.loc[sym, 'drift2Yr'] = drift2Yr
     stockData.loc[sym, 'drift2YrUpdated'] = datetime.datetime.now()
 
+    quote = iexUtils.getQuote(sym)
+    stockData.loc[sym, 'avgTotalVolume30'] = quote.avgTotalVolume
+
     joblib.dump({"data": stockData}, 'historicalStockData.pkl')
 
 
@@ -94,5 +97,9 @@ def tryFillNaNs():
             stockData.loc[sym, 'vols2YrUpdated'] = datetime.datetime.now()
             stockData.loc[sym, 'drift2Yr'] = drift2Yr
             stockData.loc[sym, 'drift2YrUpdated'] = datetime.datetime.now()
+
+        if pd.isnull(row['avgTotalVolume30']):
+            quote = iexUtils.getQuote(sym)
+            stockData.loc[sym, 'avgTotalVolume30'] = quote.avgTotalVolume
 
     joblib.dump({"data": stockData}, 'historicalStockData.pkl')
