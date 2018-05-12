@@ -26,3 +26,6 @@ def getBatchEarnings(symbols):
 
 def getDaysData(symbol, date):
     return pd.read_json("https://api.iextrading.com/1.0/stock/"+symbol+"/chart/date/"+datetime.datetime.strftime(date, "%Y%m%d"))
+
+def getQuote(symbol):
+    return pd.read_json("https://api.iextrading.com/1.0/stock/"+symbol+"/quote", typ='series')
