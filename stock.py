@@ -1,4 +1,4 @@
-from earnings import Earnings
+from earnings import Earning
 
 class Stock(object):
     def __init__(self, symbol, price):
