@@ -35,7 +35,7 @@ def main(user, executeTrades, timeInterval):
 		currentDate = datetime.date.today()
 		easternHour = currentTime.hour
 		easternMinute = currentTime.minute
-		isDuringMarketHours = (easternHour == 6 and easternMinute > 30) or (easternHour > 6 and easternHour < 17)
+		isDuringMarketHours = (easternHour == 6 and easternMinute > 30) or (easternHour > 6 and easternHour < 16)
 		isWeekday = currentDate.isoweekday() in range(1, 6)
 		isTradingHoliday = currentDate in cal.holidays(start=currentDate, end=currentDate + datetime.timedelta(days=1))
 		if not isDuringMarketHours or not isWeekday or isTradingHoliday:
