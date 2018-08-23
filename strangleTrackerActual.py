@@ -21,6 +21,7 @@ def main(user, executeTrades, timeInterval):
 	# TODO: use executeTrades flag to decide whether to trade automatically
 	# TODO: execute trades automatically if profit > margin or delta gap > margin
 
+	print("Connecting to IB...")
 	ib = ibUtils.connect()
 
 	print(user, executeTrades, timeInterval)
@@ -28,15 +29,18 @@ def main(user, executeTrades, timeInterval):
 		print(datetime.datetime.now())
 		# TODO: check if during trading hours
 		for symbol in WATCH_LIST:
+			print("Symbol:", symbol)
+			print("Getting contract...")
 			contract = ibUtils.getStockQualifiedContract(symbol, ib)
+			print("Getting ticker...")
 			ticker = ibUtils.getTicker(contract, ib)
+			print("Getting earnings date...")
+			earningsDate = ibUtils.getNextEarningsDate(contract, ib)
+			print(earningsDate)
 
-			# TODO: load earnings date dynamically
-			earningsDate = datetime.date(2018, 9, 5)
 			expiryDate = datetime.date(2018, 9, 11)
-			# TODO: load stock price dynamically
+
 			stockPrice = ticker.last
-			print(stockPrice)
 			hv2yr = get2yrVolatility(symbol)
 			stock = Stock(symbol, stockPrice)
 			# TODO: load options info dynamically and select options based on stock price
