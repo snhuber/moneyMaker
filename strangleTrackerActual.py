@@ -8,6 +8,9 @@ import time
 import pandas as pd
 from sklearn.externals import joblib
 import ibUtils
+from dateutil.tz import tzlocal
+from pytz import timezone
+from tradingCalendar import USTradingCalendar
 
 # TODO: repopulate from strangleCandidates or by selecting stocks
 WATCH_LIST = ['AMD']
@@ -26,17 +29,28 @@ def main(user, executeTrades, timeInterval):
 
 	print(user, executeTrades, timeInterval)
 	while True:
-		print(datetime.datetime.now())
-		# TODO: check if during trading hours
+		cal = USTradingCalendar()
+		eastern = timezone("US/Eastern")
+		currentTime = datetime.datetime.now(eastern)
+		currentDate = datetime.date.today()
+		easternHour = currentTime.hour
+		easternMinute = currentTime.minute
+		isDuringMarketHours = (easternHour == 6 and easternMinute > 30) or (easternHour > 6 and easternHour < 17)
+		isWeekday = currentDate.isoweekday() in range(1, 6)
+		isTradingHoliday = currentDate in cal.holidays(start=currentDate, end=currentDate + datetime.timedelta(days=1))
+		if not isDuringMarketHours or not isWeekday or isTradingHoliday:
+			print("It is either not during market hours or is a holiday. Sleeping until next observation...")
+			time.sleep(60*timeInterval)
+			continue
+
 		for symbol in WATCH_LIST:
-			print("Symbol:", symbol)
+			print("\nSymbol:", symbol)
 			print("Getting contract...")
 			contract = ibUtils.getStockQualifiedContract(symbol, ib)
 			print("Getting ticker...")
 			ticker = ibUtils.getTicker(contract, ib)
 			print("Getting earnings date...")
 			earningsDate = ibUtils.getNextEarningsDate(contract, ib)
-			print(earningsDate)
 
 			expiryDate = datetime.date(2018, 9, 11)
 
@@ -77,6 +91,8 @@ def main(user, executeTrades, timeInterval):
 				# TODO: make time decay real
 				df = df.append(pd.Series({"Datetime": date, "StockPrice": stock.currentPrice, "OptionPrice": option.cost, "XSigma": option.daySigma/hv2yr, "Delta": 1, "TimeDecayOneDay": 1}, name=date), ignore_index=True)
 				df.to_csv(optionPath, index=False)
+
+		print("Sleeping between observations...\n")
 		time.sleep(60*timeInterval)
 
 parser = argparse.ArgumentParser(description='Strangle tracker')

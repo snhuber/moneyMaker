@@ -21,7 +21,6 @@ def getTicker(contract, ib):
 
 def getNextEarningsDate(contract, ib):
 	xmlCalendarReport = ib.reqFundamentalData(contract, "CalendarReport")
-	print(xmlCalendarReport)
 	root = etree.fromstring(xmlCalendarReport)
 	company = root[0]
 	earningsList = company.find('EarningsList')
