@@ -37,7 +37,6 @@ def getOptions(contract, marketPrice, earningsDate, ib):
 	dateformat = "%Y%m%d"
 	chains = ib.reqSecDefOptParams(contract.symbol, '', contract.secType, contract.conId)
 	smartChain = list(filter(lambda x: x.exchange == 'SMART', chains))[0]
-	print(smartChain)
 	nextExpiry = None
 	for expiry in sorted(smartChain.expirations):
 		date = datetime.datetime.strptime(expiry, dateformat)
@@ -59,7 +58,15 @@ def getOptions(contract, marketPrice, earningsDate, ib):
 			for strike in sixStrikes]
 
 	ib.qualifyContracts(*options)
-	tickers = ib.reqTickers(*options)
+	# tickers = ib.reqTickers(*options)
+	tickers = []
+	print("Requesting option market data...")
+	for option in options:
+		ticker = ib.reqMktData(option, "", True, False)
+		# Needed to make sure the data gets properly loaded, reqMktData is supposed to
+		# be blocking but doesn't seem to actually be
+		while ticker.bid != ticker.bid or ticker.ask != ticker.ask: ib.sleep(0.01)
+		tickers.append(ticker)
 	return datetime.datetime.strptime(nextExpiry, dateformat).date(), tickers
 
 

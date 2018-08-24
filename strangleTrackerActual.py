@@ -57,7 +57,7 @@ def main(user, executeTrades, timeInterval):
 			stockPrice = ticker.marketPrice()
 			print("Getting option details...")
 			nextExpiry, optionTickers = ibUtils.getOptions(contract, stockPrice, earningsDate, ib)
-			print(optionTickers)
+			# print(optionTickers)
 			hv2yr = get2yrVolatility(symbol)
 			stock = Stock(symbol, stockPrice)
 			# TODO: load options info dynamically and select options based on stock price
@@ -65,7 +65,6 @@ def main(user, executeTrades, timeInterval):
 			# print(options)
 			# options = list(filter(lambda x: ((stockPrice < x.strike) and x.call) or ((stockPrice > x.strike) and not x.call), options))
 			for option in options:
-				print(option.expiry, option.strike, option.call, option.bid, option.ask, stockPrice)
 				option.setDaySigma(stock)
 
 			# TODO: compute delta for options
