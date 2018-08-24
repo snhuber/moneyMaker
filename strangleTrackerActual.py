@@ -35,7 +35,7 @@ def main(user, executeTrades, timeInterval):
 		currentDate = datetime.date.today()
 		easternHour = currentTime.hour
 		easternMinute = currentTime.minute
-		isDuringMarketHours = (easternHour == 6 and easternMinute > 30) or (easternHour > 6 and easternHour < 17)
+		isDuringMarketHours = (easternHour == 6 and easternMinute > 30) or (easternHour > 6 and easternHour < 16)
 		isWeekday = currentDate.isoweekday() in range(1, 6)
 		isTradingHoliday = currentDate in cal.holidays(start=currentDate, end=currentDate + datetime.timedelta(days=1))
 		if not isDuringMarketHours or not isWeekday or isTradingHoliday:
@@ -54,11 +54,16 @@ def main(user, executeTrades, timeInterval):
 
 			expiryDate = datetime.date(2018, 9, 11)
 
-			stockPrice = ticker.last
+			stockPrice = ticker.marketPrice()
+			print("Getting option details...")
+			nextExpiry, optionTickers = ibUtils.getOptions(contract, stockPrice, earningsDate, ib)
+			# print(optionTickers)
 			hv2yr = get2yrVolatility(symbol)
 			stock = Stock(symbol, stockPrice)
 			# TODO: load options info dynamically and select options based on stock price
-			options = [Option(hv2yr, 22, True, 1.08, 1.10, expiryDate)]
+			options = [Option(hv2yr, opt.contract.strike, opt.contract.right == 'C', opt.bid, opt.ask, nextExpiry) for opt in optionTickers]
+			# print(options)
+			# options = list(filter(lambda x: ((stockPrice < x.strike) and x.call) or ((stockPrice > x.strike) and not x.call), options))
 			for option in options:
 				option.setDaySigma(stock)
 
