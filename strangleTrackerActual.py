@@ -84,6 +84,7 @@ def main(user, executeTrades, timeInterval):
 
 			for option in options:
 				putCall = "call" if option.call else "put"
+				# TODO: maybe add the expiry date of the option to the path (not sure if more expiries are added as you get closer to the date)
 				optionPath = os.path.join(os.getcwd(), user, symbol, earningsDate.strftime("%d%b%Y"), putCall+"_"+str(option.strike)+".csv")
 				optionExists = os.path.exists(optionPath)
 				date = datetime.datetime.now().strftime("%d%b%Y%H%M%S")
