@@ -33,61 +33,6 @@ def main(user, executeTrades, timeInterval, test):
 
 	print(user, executeTrades, timeInterval)
 	while True:
-
-		if test:
-			print("TEST MODE")
-			symbol = 'AMD'
-			expiryDate = datetime.date(2018, 11, 16)
-			earningsDate = datetime.date(2018, 10, 23)
-			stock = Stock(symbol, 23.53)
-			hv2yr = get2yrVolatility(symbol)
-			options = [Option(hv2yr, 22.0, True, 3.30, 3.35, expiryDate),
-					   Option(hv2yr, 23.0, True, 3.30, 3.35, expiryDate),
-					   Option(hv2yr, 24.0, True, 3.30, 3.35, expiryDate),
-					   Option(hv2yr, 25.0, True, 3.30, 3.35, expiryDate),
-					   Option(hv2yr, 22.0, False, 3.30, 3.35, expiryDate),
-					   Option(hv2yr, 23.0, False, 3.30, 3.35, expiryDate),
-					   Option(hv2yr, 24.0, False, 3.30, 3.35, expiryDate),
-					   Option(hv2yr, 25.0, False, 3.30, 3.35, expiryDate)]
-			for option in options:
-				option.setDaySigma(stock)
-			testExists = os.path.isdir(os.path.join(os.getcwd(), "test"))		   
-			traderExists = os.path.isdir(os.path.join(os.getcwd(), "test", user))
-			stockExists = os.path.isdir(os.path.join(os.getcwd(), "test", user, symbol))
-			earningsDateExists = os.path.isdir(os.path.join(os.getcwd(), "test", user, symbol, earningsDate.strftime("%d%b%Y")))
-
-			if not testExists:
-				os.mkdir(os.path.join(os.getcwd(), "test"))
-
-			if not traderExists:
-				os.mkdir(os.path.join(os.getcwd(), "test", user))
-
-			if not stockExists:
-				os.mkdir(os.path.join(os.getcwd(), "test", user, symbol))
-
-			if not earningsDateExists:
-				os.mkdir(os.path.join(os.getcwd(), "test", user, symbol, earningsDate.strftime("%d%b%Y")))
-
-			for option in options:
-				putCall = "call" if option.call else "put"
-				# TODO: maybe add the expiry date of the option to the path (not sure if more expiries are added as you get closer to the date)
-				optionPath = os.path.join(os.getcwd(), "test", user, symbol, earningsDate.strftime("%d%b%Y"), putCall+"_"+str(option.strike)+".csv")
-				optionExists = os.path.exists(optionPath)
-				date = datetime.datetime.now().strftime("%d%b%Y%H%M%S")
-				if not optionExists:
-					df = pd.DataFrame(columns=["Datetime", "StockPrice", "OptionPrice", "XSigma", "Delta", "TimeDecayOneDay"])
-					df.to_csv(optionPath, index=False)
-
-				df = pd.read_csv(optionPath)
-				# TODO: make delta real
-				# TODO: make time decay real
-				df = df.append(pd.Series({"Datetime": date, "StockPrice": stock.currentPrice, "OptionPrice": option.cost, "XSigma": option.daySigma/hv2yr, "Delta": 1, "TimeDecayOneDay": 1}, name=date), ignore_index=True)
-				df.to_csv(optionPath, index=False)
-			print("Sleeping between observations...\n")
-			time.sleep(60*timeInterval)
-			continue
-
-		# TODO: make it run in test mode or something when its not during trading hours
 		cal = USTradingCalendar()
 		eastern = timezone("US/Eastern")
 		currentTime = datetime.datetime.now(eastern)
