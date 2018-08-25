@@ -1,6 +1,7 @@
 import datetime
 import optionUtils
 import numpy as np
+import math
 
 class Option(object):
     def __init__(self, hv2yr, strike, call, bid, ask, expiry):
@@ -14,6 +15,7 @@ class Option(object):
         self.cost = self.bid + 0.6*(self.ask - self.bid)
         self.daySigma = None
         self.durSigma = None
+        self.delta = None
 
     def setDaySigma(self, stock):
         seedsigma = 1e-6
@@ -31,3 +33,19 @@ class Option(object):
             deriv = (price2-tempop)/seedsigma
             self.daySigma -= (tempop-self.cost)/deriv
             self.durSigma = optionUtils.durationVolatility(self.daySigma, self.daysToExpiry)
+
+    def setDelta(self, stock, hv):
+        rfir = 0.01
+        d1 = math.log(stock.currentPrice/self.strike) + ((rfir/365) + (hv**2)/2)*self.daysToExpiry
+        durvol = hv*math.sqrt(self.daysToExpiry)
+        delta = optionUtils.csnd(d1/durvol)
+        self.delta = delta
+
+    def setTimeDecay(self, stock):
+        if self.daysToExpiry < 2:
+            print("WARNING: One day to expiry, setting time decay to 0")
+            self.timeDecay = 0
+        else:
+            oneDayDurSigma = optionUtils.durationVolatility(self.daySigma, self.daysToExpiry-1)
+            oneDayPrice = optionUtils.otranche(stock, self, oneDayDurSigma)
+            self.timeDecay = self.cost - oneDayPrice

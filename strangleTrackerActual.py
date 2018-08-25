@@ -23,6 +23,7 @@ def get2yrVolatility(symbol):
 def main(user, executeTrades, timeInterval, test):
 	# TODO: use executeTrades flag to decide whether to trade automatically
 	# TODO: execute trades automatically if profit > margin or delta gap > margin
+	# TODO: setup tracking for a purchase strangle (i.e. email if profit > margin, or earnings is the next day, or delta spread is large)
 
 	if test:
 		print("--------------TEST MODE---------------")
@@ -85,6 +86,8 @@ def main(user, executeTrades, timeInterval, test):
 					   		Option(hv2yr, 25.0, False, 3.30, 3.35, nextExpiry)]
 			for option in options:
 				option.setDaySigma(stock)
+				option.setDelta(stock, hv2yr)
+				option.setTimeDecay(stock)
 
 			# TODO: compute delta for options
 
@@ -133,7 +136,7 @@ def main(user, executeTrades, timeInterval, test):
 				df = pd.read_csv(optionPath)
 				# TODO: make delta real
 				# TODO: make time decay real
-				df = df.append(pd.Series({"Datetime": date, "StockPrice": stock.currentPrice, "OptionPrice": option.cost, "XSigma": option.daySigma/hv2yr, "Delta": 1, "TimeDecayOneDay": 1}, name=date), ignore_index=True)
+				df = df.append(pd.Series({"Datetime": date, "StockPrice": stock.currentPrice, "OptionPrice": option.cost, "XSigma": option.daySigma/hv2yr, "Delta": option.delta, "TimeDecayOneDay": option.timeDecay}, name=date), ignore_index=True)
 				df.to_csv(optionPath, index=False)
 
 		print("Sleeping between observations...\n")
