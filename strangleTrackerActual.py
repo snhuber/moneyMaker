@@ -75,14 +75,14 @@ def main(user, executeTrades, timeInterval, test):
 			if not test:
 				options = [Option(hv2yr, opt.contract.strike, opt.contract.right == 'C', opt.bid, opt.ask, nextExpiry) for opt in optionTickers]
 			else:
-				options = [Option(hv2yr, 22.0, True, 3.30, 3.35, expiryDate),
-					   		Option(hv2yr, 23.0, True, 3.30, 3.35, expiryDate),
-					   		Option(hv2yr, 24.0, True, 3.30, 3.35, expiryDate),
-					   		Option(hv2yr, 25.0, True, 3.30, 3.35, expiryDate),
-					   		Option(hv2yr, 22.0, False, 3.30, 3.35, expiryDate),
-					   		Option(hv2yr, 23.0, False, 3.30, 3.35, expiryDate),
-					   		Option(hv2yr, 24.0, False, 3.30, 3.35, expiryDate),
-					   		Option(hv2yr, 25.0, False, 3.30, 3.35, expiryDate)]
+				options = [Option(hv2yr, 22.0, True, 3.30, 3.35, nextExpiry),
+					   		Option(hv2yr, 23.0, True, 3.30, 3.35, nextExpiry),
+					   		Option(hv2yr, 24.0, True, 3.30, 3.35, nextExpiry),
+					   		Option(hv2yr, 25.0, True, 3.30, 3.35, nextExpiry),
+					   		Option(hv2yr, 22.0, False, 3.30, 3.35, nextExpiry),
+					   		Option(hv2yr, 23.0, False, 3.30, 3.35, nextExpiry),
+					   		Option(hv2yr, 24.0, False, 3.30, 3.35, nextExpiry),
+					   		Option(hv2yr, 25.0, False, 3.30, 3.35, nextExpiry)]
 			for option in options:
 				option.setDaySigma(stock)
 
@@ -101,10 +101,12 @@ def main(user, executeTrades, timeInterval, test):
 
 			stockPath = os.path.join(traderPath, symbol)
 			earningsDatePath = os.path.join(stockPath, earningsDate.strftime("%d%b%Y"))
-			
+			expiryDatePath = os.path.join(earningsDatePath, nextExpiry.strftime("%d%b%Y"))
+
 			traderExists = os.path.isdir(traderPath)
 			stockExists = os.path.isdir(stockPath)
 			earningsDateExists = os.path.isdir(earningsDatePath)
+			expiryDateExists = os.path.isdir(expiryDatePath)
 
 			if not traderExists:
 				os.mkdir(traderPath)
@@ -115,10 +117,13 @@ def main(user, executeTrades, timeInterval, test):
 			if not earningsDateExists:
 				os.mkdir(earningsDatePath)
 
+			if not expiryDateExists:
+				os.mkdir(expiryDatePath)
+
 			for option in options:
 				putCall = "call" if option.call else "put"
 				# TODO: maybe add the expiry date of the option to the path (not sure if more expiries are added as you get closer to the date)
-				optionPath = os.path.join(earningsDatePath, putCall+"_"+str(option.strike)+".csv")
+				optionPath = os.path.join(expiryDatePath, putCall+"_"+str(option.strike)+".csv")
 				optionExists = os.path.exists(optionPath)
 				date = datetime.datetime.now().strftime("%d%b%Y%H%M%S")
 				if not optionExists:
