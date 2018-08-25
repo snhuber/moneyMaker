@@ -24,6 +24,9 @@ def main(user, executeTrades, timeInterval, test):
 	# TODO: use executeTrades flag to decide whether to trade automatically
 	# TODO: execute trades automatically if profit > margin or delta gap > margin
 
+	if test:
+		print("--------------TEST MODE---------------")
+
 	if not test:
 		print("Connecting to IB...")
 		ib = ibUtils.connect()
@@ -94,7 +97,7 @@ def main(user, executeTrades, timeInterval, test):
 		isDuringMarketHours = (easternHour == 6 and easternMinute > 30) or (easternHour > 6 and easternHour < 16)
 		isWeekday = currentDate.isoweekday() in range(1, 6)
 		isTradingHoliday = currentDate in cal.holidays(start=currentDate, end=currentDate + datetime.timedelta(days=1))
-		if not isDuringMarketHours or not isWeekday or isTradingHoliday:
+		if (not isDuringMarketHours or not isWeekday or isTradingHoliday) and (not test):
 			print("It is either not during market hours or is a holiday. Sleeping until next observation...")
 			time.sleep(60*timeInterval)
 			continue
@@ -102,44 +105,75 @@ def main(user, executeTrades, timeInterval, test):
 		for symbol in WATCH_LIST:
 			print("\nSymbol:", symbol)
 			print("Getting contract...")
-			contract = ibUtils.getStockQualifiedContract(symbol, ib)
+			if not test:
+				contract = ibUtils.getStockQualifiedContract(symbol, ib)
 			print("Getting ticker...")
-			ticker = ibUtils.getTicker(contract, ib)
+			if not test:
+				ticker = ibUtils.getTicker(contract, ib)
 			print("Getting earnings date...")
-			earningsDate = ibUtils.getNextEarningsDate(contract, ib)
+			if not test:
+				earningsDate = ibUtils.getNextEarningsDate(contract, ib)
+			else:
+				earningsDate = datetime.date(2018, 10, 23)
 
-			stockPrice = ticker.marketPrice()
-			print("Getting option details...")
-			nextExpiry, optionTickers = ibUtils.getOptions(contract, stockPrice, earningsDate, ib)
-			# print(optionTickers)
+			if not test:
+				stockPrice = ticker.marketPrice()
+				print("Getting option details...")
+				nextExpiry, optionTickers = ibUtils.getOptions(contract, stockPrice, earningsDate, ib)
+			else:
+				stockPrice = 23.53
+				nextExpiry = datetime.date(2018, 11, 16)
+
 			hv2yr = get2yrVolatility(symbol)
 			stock = Stock(symbol, stockPrice)
-			# TODO: load options info dynamically and select options based on stock price
-			options = [Option(hv2yr, opt.contract.strike, opt.contract.right == 'C', opt.bid, opt.ask, nextExpiry) for opt in optionTickers]
-			# print(options)
-			# options = list(filter(lambda x: ((stockPrice < x.strike) and x.call) or ((stockPrice > x.strike) and not x.call), options))
+			
+			if not test:
+				options = [Option(hv2yr, opt.contract.strike, opt.contract.right == 'C', opt.bid, opt.ask, nextExpiry) for opt in optionTickers]
+			else:
+				options = [Option(hv2yr, 22.0, True, 3.30, 3.35, expiryDate),
+					   		Option(hv2yr, 23.0, True, 3.30, 3.35, expiryDate),
+					   		Option(hv2yr, 24.0, True, 3.30, 3.35, expiryDate),
+					   		Option(hv2yr, 25.0, True, 3.30, 3.35, expiryDate),
+					   		Option(hv2yr, 22.0, False, 3.30, 3.35, expiryDate),
+					   		Option(hv2yr, 23.0, False, 3.30, 3.35, expiryDate),
+					   		Option(hv2yr, 24.0, False, 3.30, 3.35, expiryDate),
+					   		Option(hv2yr, 25.0, False, 3.30, 3.35, expiryDate)]
 			for option in options:
 				option.setDaySigma(stock)
 
 			# TODO: compute delta for options
 
-			traderExists = os.path.isdir(os.path.join(os.getcwd(), user))
-			stockExists = os.path.isdir(os.path.join(os.getcwd(), user, symbol))
-			earningsDateExists = os.path.isdir(os.path.join(os.getcwd(), user, symbol, earningsDate.strftime("%d%b%Y")))
+			cwd = os.getcwd()
+			if not test:
+				traderPath = os.path.join(cwd, user)
+				
+			else:
+				testPath = os.path.join(cwd, "test")
+				traderPath = os.path.join(testPath, user)
+				testExists = os.path.isdir(testPath)
+				if not testExists:
+					os.mkdir(testPath)
+
+			stockPath = os.path.join(traderPath, symbol)
+			earningsDatePath = os.path.join(stockPath, earningsDate.strftime("%d%b%Y"))
+			
+			traderExists = os.path.isdir(traderPath)
+			stockExists = os.path.isdir(stockPath)
+			earningsDateExists = os.path.isdir(earningsDatePath)
 
 			if not traderExists:
-				os.mkdir(os.path.join(os.getcwd(), user))
+				os.mkdir(traderPath)
 
 			if not stockExists:
-				os.mkdir(os.path.join(os.getcwd(), user, symbol))
+				os.mkdir(stockPath)
 
 			if not earningsDateExists:
-				os.mkdir(os.path.join(os.getcwd(), user, symbol, earningsDate.strftime("%d%b%Y")))
+				os.mkdir(earningsDatePath)
 
 			for option in options:
 				putCall = "call" if option.call else "put"
 				# TODO: maybe add the expiry date of the option to the path (not sure if more expiries are added as you get closer to the date)
-				optionPath = os.path.join(os.getcwd(), user, symbol, earningsDate.strftime("%d%b%Y"), putCall+"_"+str(option.strike)+".csv")
+				optionPath = os.path.join(earningsDatePath, putCall+"_"+str(option.strike)+".csv")
 				optionExists = os.path.exists(optionPath)
 				date = datetime.datetime.now().strftime("%d%b%Y%H%M%S")
 				if not optionExists:
