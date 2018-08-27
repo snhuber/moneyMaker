@@ -18,7 +18,7 @@ from tradingCalendar import USTradingCalendar
 # TODO: add parameter for which watch list to use
 WATCH_LIST = ['AMD']
 EVANS_WATCH_LIST = ['NFLX', 'MSFT', 'FB', 'SNAP', 'AAPL', 'INTC', 'AMZN']
-TESTING_WATCH_LIST = ['WDAY', 'TECD', 'AMBA', 'KIRK', 'PSEC']
+TESTING_WATCH_LIST = ['WDAY', 'TECD', 'KIRK', 'PSEC']
 # WDAY: small, AMBA, TECD: large, KIRK, PSEC: medium
 
 def get2yrVolatility(symbol):
@@ -35,12 +35,11 @@ def main(user, executeTrades, timeInterval, test):
 	if test:
 		print("--------------TEST MODE---------------")
 
-	if not test:
-		print("Connecting to IB...")
-		ib = ibUtils.connect()
-
 	print(user, executeTrades, timeInterval)
 	while True:
+		if not test:
+			print("Connecting to IB...")
+			ib = ibUtils.connect()
 		cal = USTradingCalendar()
 		eastern = timezone("US/Eastern")
 		currentTime = datetime.datetime.now(eastern)
@@ -82,7 +81,12 @@ def main(user, executeTrades, timeInterval, test):
 			stock = Stock(symbol, stockPrice)
 			
 			if not test:
-				options = [Option(hv2yr, opt.contract.strike, opt.contract.right == 'C', opt.bid, opt.ask, nextExpiry) for opt in optionTickers]
+				options = []
+				for optionTicker in optionTickers:
+					if not optionTicker.bid or optionTicker.bid <= 0 or not optionTicker.ask or optionTicker.ask <= 0:
+						continue
+					else:
+						options.append(Option(hv2yr, optionTicker.contract.strike, optionTicker.contract.right == 'C', optionTicker.bid, optionTicker.ask, nextExpiry))
 			else:
 				options = [Option(hv2yr, 22.0, True, 3.30, 3.35, nextExpiry),
 					   		Option(hv2yr, 23.0, True, 3.30, 3.35, nextExpiry),
@@ -148,8 +152,9 @@ def main(user, executeTrades, timeInterval, test):
 				df = df.append(pd.Series({"Datetime": date, "StockPrice": stock.currentPrice, "OptionPrice": option.cost, "XSigma": option.daySigma/hv2yr, "Delta": option.delta, "TimeDecayOneDay": option.timeDecay}, name=date), ignore_index=True)
 				df.to_csv(optionPath, index=False)
 
+		ib.disconnect()
 		print("Sleeping between observations...\n")
-		time.sleep(60*timeInterval)
+		ib.sleep(60*timeInterval)
 
 parser = argparse.ArgumentParser(description='Strangle tracker')
 parser.add_argument('user', help='The user (which folder data will be stored in)')
