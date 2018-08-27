@@ -18,21 +18,25 @@ class Option(object):
         self.delta = None
 
     def setDaySigma(self, stock):
-        seedsigma = 1e-6
-        cutoff = 1e-4
-        tempop = 0.0
-        price2 = 0.0
-        deriv = 0.0
-        durseed = optionUtils.durationVolatility(seedsigma, self.daysToExpiry)
-        self.daySigma = 0.06 if self.call else 0.01
-        self.durSigma = optionUtils.durationVolatility(self.daySigma, self.daysToExpiry)
-
-        while np.abs(tempop - self.cost) > cutoff:
-            tempop = optionUtils.otranche(stock, self, self.durSigma)
-            price2 = optionUtils.otranche(stock, self, self.durSigma+durseed)
-            deriv = (price2-tempop)/seedsigma
-            self.daySigma -= (tempop-self.cost)/deriv
+        try:
+            seedsigma = 1e-6
+            cutoff = 1e-4
+            tempop = 0.0
+            price2 = 0.0
+            deriv = 0.0
+            durseed = optionUtils.durationVolatility(seedsigma, self.daysToExpiry)
+            self.daySigma = 0.06 if self.call else 0.01
             self.durSigma = optionUtils.durationVolatility(self.daySigma, self.daysToExpiry)
+
+            while np.abs(tempop - self.cost) > cutoff:
+                tempop = optionUtils.otranche(stock, self, self.durSigma)
+                price2 = optionUtils.otranche(stock, self, self.durSigma+durseed)
+                deriv = (price2-tempop)/seedsigma
+                self.daySigma -= (tempop-self.cost)/deriv
+                self.durSigma = optionUtils.durationVolatility(self.daySigma, self.daysToExpiry)
+        except:
+            self.daySigma = None
+            self.durSigma = None
 
     def setDelta(self, stock, hv):
         rfir = 0.01
