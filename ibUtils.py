@@ -36,10 +36,7 @@ def getNextEarningsDate(contract, ib):
 	return datetime.datetime.strptime(date, "%m/%d/%Y")
 
 def getOptions(contract, marketPrice, earningsDate, ib):
-	# contract = Option(symbol, exchange='SMART', )
-	# contractDetails = ib.reqContractDetails(contract)
-	# contracts = [cd.summary for cd in contractDetails]
-	# print(contracts[0])
+	# TODO: sometimes this just hangs forever....
 	dateformat = "%Y%m%d"
 	chains = ib.reqSecDefOptParams(contract.symbol, '', contract.secType, contract.conId)
 	smartChain = list(filter(lambda x: x.exchange == 'SMART', chains))[0]
@@ -71,7 +68,20 @@ def getOptions(contract, marketPrice, earningsDate, ib):
 		ticker = ib.reqMktData(option, "", True, False)
 		# Needed to make sure the data gets properly loaded, reqMktData is supposed to
 		# be blocking but doesn't seem to actually be
-		while ticker.bid != ticker.bid or ticker.ask != ticker.ask: ib.sleep(0.01)
+		counter = 0
+		while ticker.bid != ticker.bid or ticker.ask != ticker.ask:
+			counter += 1
+			if counter % 500 == 0:
+				print(counter)
+			if counter > 2000:
+				print("Option data request timeout exceeded...")
+				print(option.right)
+				print(option.strike)
+				ticker.bid = None
+				ticker.ask = None
+				break
+			ib.sleep(0.01)
+		ib.cancelMktData(option)
 		tickers.append(ticker)
 	return datetime.datetime.strptime(nextExpiry, dateformat).date(), tickers
 
