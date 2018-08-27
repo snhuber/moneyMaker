@@ -21,12 +21,18 @@ def getTicker(contract, ib):
 
 def getNextEarningsDate(contract, ib):
 	xmlCalendarReport = ib.reqFundamentalData(contract, "CalendarReport")
-	root = etree.fromstring(xmlCalendarReport)
+	try:
+		root = etree.fromstring(xmlCalendarReport)
+	except:
+		return None
 	company = root[0]
 	earningsList = company.find('EarningsList')
 	earnings = earningsList[0]
 	period = earnings.find('Period').text
-	date = earnings.find(period).text
+	try:
+		date = earnings.find(period).text
+	except:
+		return None
 	return datetime.datetime.strptime(date, "%m/%d/%Y")
 
 def getOptions(contract, marketPrice, earningsDate, ib):

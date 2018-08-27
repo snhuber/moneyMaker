@@ -14,6 +14,9 @@ from tradingCalendar import USTradingCalendar
 
 # TODO: repopulate from strangleCandidates or by selecting stocks
 WATCH_LIST = ['AMD']
+EVANS_WATCH_LIST = ['NFLX', 'MSFT', 'FB', 'SNAP', 'AAPL', 'INTC', 'AMZN']
+TESTING_WATCH_LIST = ['WDAY', 'TECD', 'AMBA', 'HEI', 'KIRK', 'PSEC']
+# WDAY: small, AMBA, TECD: large, HEI, KIRK, PSEC: medium
 
 def get2yrVolatility(symbol):
     dictionary = joblib.load('historicalStockData.pkl')
@@ -23,7 +26,8 @@ def get2yrVolatility(symbol):
 def main(user, executeTrades, timeInterval, test):
 	# TODO: use executeTrades flag to decide whether to trade automatically
 	# TODO: execute trades automatically if profit > margin or delta gap > margin
-	# TODO: setup tracking for a purchase strangle (i.e. email if profit > margin, or earnings is the next day, or delta spread is large)
+	# TODO: setup tracking for a purchased strangle (i.e. email if profit > margin, or earnings is the next day, or delta spread is large)
+	# TODO: analysis tools (option price vs xsigma over time, line for stock price, bar for earnings date), (option prices at different strikes over time), (option price vs delta over time)
 
 	if test:
 		print("--------------TEST MODE---------------")
@@ -125,7 +129,6 @@ def main(user, executeTrades, timeInterval, test):
 
 			for option in options:
 				putCall = "call" if option.call else "put"
-				# TODO: maybe add the expiry date of the option to the path (not sure if more expiries are added as you get closer to the date)
 				optionPath = os.path.join(expiryDatePath, putCall+"_"+str(option.strike)+".csv")
 				optionExists = os.path.exists(optionPath)
 				date = datetime.datetime.now().strftime("%d%b%Y%H%M%S")
@@ -134,8 +137,6 @@ def main(user, executeTrades, timeInterval, test):
 					df.to_csv(optionPath, index=False)
 
 				df = pd.read_csv(optionPath)
-				# TODO: make delta real
-				# TODO: make time decay real
 				df = df.append(pd.Series({"Datetime": date, "StockPrice": stock.currentPrice, "OptionPrice": option.cost, "XSigma": option.daySigma/hv2yr, "Delta": option.delta, "TimeDecayOneDay": option.timeDecay}, name=date), ignore_index=True)
 				df.to_csv(optionPath, index=False)
 
