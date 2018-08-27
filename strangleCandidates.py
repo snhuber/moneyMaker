@@ -1,6 +1,12 @@
 from sklearn.externals import joblib
 import numpy as np
 import pandas as pd
+from strangleTrackerActual import EVANS_WATCH_LIST
+import ibUtils
+import datetime
+
+# TODO: add some parameters for what list of stocks to explore (e.g. all, or evans watch list, or our wathc list)
+# TODO: add a function to report meanSigma for a given stock
 
 def calculateCandidateInfo(data, symbol):
     xsigmas = []
@@ -20,7 +26,21 @@ def main():
         maxSigma, minSigma, meanSigma = calculateCandidateInfo(row, sym)
         sigmas.append((meanSigma, sym))
 
-    print(sorted(sigmas))
+    ib = ibUtils.connect()
+    today = datetime.date.today()
+    upcoming = []
+    for sigma in sigmas:
+        contract = ibUtils.getStockQualifiedContract(sigma[1], ib)
+        nextEarnings = ibUtils.getNextEarningsDate(contract, ib)
+        # TODO: figure out better way to catch this error
+        if nextEarnings == None:
+            continue
+
+        if (nextEarnings.date() - today).days < 10:
+            upcoming.append(sigma)
+
+    for upcomingStock in upcoming:
+        print(upcomingStock)
 
 if __name__ == '__main__':
     main()

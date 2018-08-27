@@ -12,8 +12,14 @@ from dateutil.tz import tzlocal
 from pytz import timezone
 from tradingCalendar import USTradingCalendar
 
+# TODO: make more robust to errors: security might not exist, option may have empty bid/ask queue, otranche might diverge, etc
+
 # TODO: repopulate from strangleCandidates or by selecting stocks
+# TODO: add parameter for which watch list to use
 WATCH_LIST = ['AMD']
+EVANS_WATCH_LIST = ['NFLX', 'MSFT', 'FB', 'SNAP', 'AAPL', 'INTC', 'AMZN']
+TESTING_WATCH_LIST = ['WDAY', 'TECD', 'AMBA', 'KIRK', 'PSEC']
+# WDAY: small, AMBA, TECD: large, KIRK, PSEC: medium
 
 def get2yrVolatility(symbol):
     dictionary = joblib.load('historicalStockData.pkl')
@@ -23,7 +29,8 @@ def get2yrVolatility(symbol):
 def main(user, executeTrades, timeInterval, test):
 	# TODO: use executeTrades flag to decide whether to trade automatically
 	# TODO: execute trades automatically if profit > margin or delta gap > margin
-	# TODO: setup tracking for a purchase strangle (i.e. email if profit > margin, or earnings is the next day, or delta spread is large)
+	# TODO: setup tracking for a purchased strangle (i.e. email if profit > margin, or earnings is the next day, or delta spread is large)
+	# TODO: analysis tools (option price vs xsigma over time, line for stock price, bar for earnings date), (option prices at different strikes over time), (option price vs delta over time)
 
 	if test:
 		print("--------------TEST MODE---------------")
@@ -48,8 +55,9 @@ def main(user, executeTrades, timeInterval, test):
 			time.sleep(60*timeInterval)
 			continue
 
-		for symbol in WATCH_LIST:
+		for symbol in TESTING_WATCH_LIST:
 			print("\nSymbol:", symbol)
+			print(datetime.datetime.now())
 			print("Getting contract...")
 			if not test:
 				contract = ibUtils.getStockQualifiedContract(symbol, ib)
@@ -86,6 +94,8 @@ def main(user, executeTrades, timeInterval, test):
 					   		Option(hv2yr, 25.0, False, 3.30, 3.35, nextExpiry)]
 			for option in options:
 				option.setDaySigma(stock)
+				if option.daySigma == None:
+					continue
 				option.setDelta(stock, hv2yr)
 				option.setTimeDecay(stock)
 
@@ -124,8 +134,9 @@ def main(user, executeTrades, timeInterval, test):
 				os.mkdir(expiryDatePath)
 
 			for option in options:
+				if option.daySigma == None:
+					continue
 				putCall = "call" if option.call else "put"
-				# TODO: maybe add the expiry date of the option to the path (not sure if more expiries are added as you get closer to the date)
 				optionPath = os.path.join(expiryDatePath, putCall+"_"+str(option.strike)+".csv")
 				optionExists = os.path.exists(optionPath)
 				date = datetime.datetime.now().strftime("%d%b%Y%H%M%S")
@@ -134,8 +145,6 @@ def main(user, executeTrades, timeInterval, test):
 					df.to_csv(optionPath, index=False)
 
 				df = pd.read_csv(optionPath)
-				# TODO: make delta real
-				# TODO: make time decay real
 				df = df.append(pd.Series({"Datetime": date, "StockPrice": stock.currentPrice, "OptionPrice": option.cost, "XSigma": option.daySigma/hv2yr, "Delta": option.delta, "TimeDecayOneDay": option.timeDecay}, name=date), ignore_index=True)
 				df.to_csv(optionPath, index=False)
 
