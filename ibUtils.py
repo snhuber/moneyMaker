@@ -30,7 +30,17 @@ def getNextEarningsDate(contract, ib):
 	earnings = earningsList[0]
 	period = earnings.find('Period').text
 	try:
-		date = earnings.find(period).text
+		previousQ = int(period[1]) - 1
+		if previousQ == 0:
+			previousQ = 4
+		previousPeriod = "Q" + str(previousQ)
+		previousDateText = earnings.find(previousPeriod).text
+		previousDate = datetime.datetime.strptime(previousDateText, "%m/%d/%Y").date()
+		days = (datetime.date.today() - previousDate).days
+		if days < 2 and days > 0:
+			date = previousDateText
+		else:
+			date = earnings.find(period).text
 	except:
 		return None
 	return datetime.datetime.strptime(date, "%m/%d/%Y")
@@ -48,6 +58,7 @@ def getOptions(contract, marketPrice, earningsDate, ib):
 			break
 
 	idx = None
+	# TODO: double check this filtering (it seemed to be necessary but also excludes half dollar strikes)
 	intStrikes = list(filter(lambda x: int(x) == x, sorted(smartChain.strikes)))
 	for i, strike in enumerate(intStrikes):
 		if marketPrice < strike:
@@ -73,7 +84,7 @@ def getOptions(contract, marketPrice, earningsDate, ib):
 			counter += 1
 			if counter % 500 == 0:
 				print(counter)
-			if counter > 2000:
+			if counter > 1500:
 				print("Option data request timeout exceeded...")
 				print(option.right)
 				print(option.strike)
