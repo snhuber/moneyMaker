@@ -37,9 +37,6 @@ def main(user, executeTrades, timeInterval, test):
 
 	print(user, executeTrades, timeInterval)
 	while True:
-		if not test:
-			print("Connecting to IB...")
-			ib = ibUtils.connect()
 		cal = USTradingCalendar()
 		eastern = timezone("US/Eastern")
 		currentTime = datetime.datetime.now(eastern)
@@ -53,6 +50,10 @@ def main(user, executeTrades, timeInterval, test):
 			print("It is either not during market hours or is a holiday. Sleeping until next observation...")
 			time.sleep(60*timeInterval)
 			continue
+
+		if not test:
+			print("Connecting to IB...")
+			ib = ibUtils.connect()
 
 		for symbol in TESTING_WATCH_LIST:
 			print("\nSymbol:", symbol)
