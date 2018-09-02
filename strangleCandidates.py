@@ -5,7 +5,7 @@ from strangleTrackerActual import EVANS_WATCH_LIST
 import ibUtils
 import datetime
 
-# TODO: add some parameters for what list of stocks to explore (e.g. all, or evans watch list, or our wathc list)
+# TODO: add some parameters for what list of stocks to explore (e.g. all, or evans watch list, or our watch list)
 # TODO: add a function to report meanSigma for a given stock
 
 def calculateCandidateInfo(data, symbol):
