@@ -2,6 +2,7 @@ import ib_insync
 from ib_insync import *
 import xml.etree.ElementTree as etree
 import datetime
+import pickle
 
 def connect():
 	ib = IB()
@@ -37,13 +38,17 @@ def getNextEarningsDate(contract, ib):
 		previousDateText = earnings.find(previousPeriod).text
 		previousDate = datetime.datetime.strptime(previousDateText, "%m/%d/%Y").date()
 		days = (datetime.date.today() - previousDate).days
-		if days < 2 and days > 0:
+		if days <= 2 and days > 0:
 			date = previousDateText
 		else:
 			date = earnings.find(period).text
 	except:
 		return None
 	return datetime.datetime.strptime(date, "%m/%d/%Y")
+
+def getStrikesDictionary():
+	with open('strikesDict.pickle', 'rb') as handle:
+		b = pickle.load(handle)
 
 def getOptions(contract, marketPrice, earningsDate, ib):
 	# TODO: sometimes this just hangs forever....
@@ -65,11 +70,17 @@ def getOptions(contract, marketPrice, earningsDate, ib):
 			idx = i
 			break
 
-	sixStrikes = intStrikes[idx-3:idx+3]
+	strikesDictKey = contract.symbol + earningsDate.strftime("%d%b%Y") + nextExpiry.strftime("%d%b%Y")
+	strikesDictionary = getStrikesDictionary()
+	if strikesDictKey in strikesDictionary:
+		twelveStrikes = strikesDictionary[strikesDictKey]
+	else:
+		twelveStrikes = intStrikes[idx-6:idx+6]
+		strikesDictionary[strikesDictKey] = twelveStrikes
 
 	options = [Option(contract.symbol, nextExpiry, strike, right, 'SMART')
 			for right in ['P', 'C']
-			for strike in sixStrikes]
+			for strike in twelveStrikes]
 
 	ib.qualifyContracts(*options)
 	# tickers = ib.reqTickers(*options)
