@@ -65,7 +65,7 @@ def getOptions(contract, marketPrice, earningsDate, ib):
 			idx = i
 			break
 
-	sixStrikes = intStrikes[idx-3:idx+3]
+	sixStrikes = intStrikes[idx-6:idx+6]
 
 	options = [Option(contract.symbol, nextExpiry, strike, right, 'SMART')
 			for right in ['P', 'C']
