@@ -37,7 +37,7 @@ def getNextEarningsDate(contract, ib):
 		previousDateText = earnings.find(previousPeriod).text
 		previousDate = datetime.datetime.strptime(previousDateText, "%m/%d/%Y").date()
 		days = (datetime.date.today() - previousDate).days
-		if days < 2 and days > 0:
+		if days <= 2 and days > 0:
 			date = previousDateText
 		else:
 			date = earnings.find(period).text
