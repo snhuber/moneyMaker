@@ -18,7 +18,8 @@ from tradingCalendar import USTradingCalendar
 # TODO: add parameter for which watch list to use
 WATCH_LIST = ['AMD']
 EVANS_WATCH_LIST = ['NFLX', 'MSFT', 'FB', 'SNAP', 'AAPL', 'INTC', 'AMZN']
-TESTING_WATCH_LIST = ['MTRX', 'FRAN', 'ORCL', 'KR', 'PLAY', 'MU']
+TESTING_WATCH_LIST = ['MTRX', 'FRAN', 'ORCL', 'KR', 'MU']
+# TESTING_WATCH_LIST = ['MTRX']
 # MTRX: 3.37, FRAN: 2.13, ORCL: 5.97, KR: 5.41, PLAY: 1.81, MU: 2.42
 # WDAY: small, AMBA, TECD: large, KIRK, PSEC: medium
 
@@ -48,6 +49,7 @@ def main(user, executeTrades, timeInterval, test):
 		isWeekday = currentDate.isoweekday() in range(1, 6)
 		isTradingHoliday = currentDate in cal.holidays(start=currentDate, end=currentDate + datetime.timedelta(days=1))
 		if (not isDuringMarketHours or not isWeekday or isTradingHoliday) and (not test):
+			print(datetime.datetime.now())
 			print("It is either not during market hours or is a holiday. Sleeping until next observation...")
 			time.sleep(60*timeInterval)
 			continue
@@ -85,10 +87,7 @@ def main(user, executeTrades, timeInterval, test):
 			if not test:
 				options = []
 				for optionTicker in optionTickers:
-					if not optionTicker.bid or optionTicker.bid <= 0 or not optionTicker.ask or optionTicker.ask <= 0:
-						continue
-					else:
-						options.append(Option(hv2yr, optionTicker.contract.strike, optionTicker.contract.right == 'C', optionTicker.bid, optionTicker.ask, nextExpiry))
+					options.append(Option(hv2yr, optionTicker.contract.strike, optionTicker.contract.right == 'C', optionTicker.bid, optionTicker.ask, nextExpiry))
 			else:
 				options = [Option(hv2yr, 22.0, True, 3.30, 3.35, nextExpiry),
 					   		Option(hv2yr, 23.0, True, 3.30, 3.35, nextExpiry),
@@ -100,8 +99,6 @@ def main(user, executeTrades, timeInterval, test):
 					   		Option(hv2yr, 25.0, False, 3.30, 3.35, nextExpiry)]
 			for option in options:
 				option.setDaySigma(stock)
-				if option.daySigma == None:
-					continue
 				option.setDelta(stock, hv2yr)
 				option.setTimeDecay(stock)
 
@@ -141,6 +138,7 @@ def main(user, executeTrades, timeInterval, test):
 
 			for option in options:
 				if option.daySigma == None:
+					print("DaySIgma")
 					continue
 				putCall = "call" if option.call else "put"
 				optionPath = os.path.join(expiryDatePath, putCall+"_"+str(option.strike)+".csv")
