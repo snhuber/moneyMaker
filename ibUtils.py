@@ -48,7 +48,7 @@ def getNextEarningsDate(contract, ib):
 
 def getStrikesDictionary():
 	with open('strikesDict.pickle', 'rb') as handle:
-    	b = pickle.load(handle)
+		b = pickle.load(handle)
 
 def getOptions(contract, marketPrice, earningsDate, ib):
 	# TODO: sometimes this just hangs forever....

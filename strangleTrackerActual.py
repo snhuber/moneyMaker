@@ -18,7 +18,8 @@ from tradingCalendar import USTradingCalendar
 # TODO: add parameter for which watch list to use
 WATCH_LIST = ['AMD']
 EVANS_WATCH_LIST = ['NFLX', 'MSFT', 'FB', 'SNAP', 'AAPL', 'INTC', 'AMZN']
-TESTING_WATCH_LIST = ['WDAY', 'TECD', 'KIRK', 'PSEC']
+TESTING_WATCH_LIST = ['MTRX', 'FRAN', 'ORCL', 'KR', 'PLAY', 'MU']
+# MTRX: 3.37, FRAN: 2.13, ORCL: 5.97, KR: 5.41, PLAY: 1.81, MU: 2.42
 # WDAY: small, AMBA, TECD: large, KIRK, PSEC: medium
 
 def get2yrVolatility(symbol):

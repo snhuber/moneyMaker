@@ -24,23 +24,27 @@ def main():
         if ((not isinstance(row['earnings'], list)) and pd.isnull(row['earnings'])) or row['earnings'] == [] or pd.isnull(row['vols2Yr']) or pd.isnull(row['drift2Yr']) or len(row['earnings']) < 4 or row['avgTotalVolume30'] < 100000:
             continue
         maxSigma, minSigma, meanSigma = calculateCandidateInfo(row, sym)
-        sigmas.append((meanSigma, sym))
+        sigmas.append((maxSigma, meanSigma, minSigma, sym))
 
     ib = ibUtils.connect()
     today = datetime.date.today()
     upcoming = []
     for sigma in sigmas:
-        contract = ibUtils.getStockQualifiedContract(sigma[1], ib)
+        # if sigma[3] not in ['MU']:
+        #     continue
+        if sigma[1] < 1.5:
+            continue
+        if sigma[0] < 2.5:
+            continue
+        contract = ibUtils.getStockQualifiedContract(sigma[3], ib)
         nextEarnings = ibUtils.getNextEarningsDate(contract, ib)
         # TODO: figure out better way to catch this error
         if nextEarnings == None:
             continue
 
-        if (nextEarnings.date() - today).days < 10:
-            upcoming.append(sigma)
+        if (nextEarnings.date() - today).days < 17:
+            print(sigma)
 
-    for upcomingStock in upcoming:
-        print(upcomingStock)
 
 if __name__ == '__main__':
     main()
