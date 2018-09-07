@@ -35,8 +35,8 @@ class Option(object):
                 self.daySigma -= (tempop-self.cost)/deriv
                 self.durSigma = optionUtils.durationVolatility(self.daySigma, self.daysToExpiry)
         except:
-            self.daySigma = None
-            self.durSigma = None
+            self.daySigma = 0
+            self.durSigma = 0
 
     def setDelta(self, stock, hv):
         rfir = 0.01
@@ -46,7 +46,9 @@ class Option(object):
         self.delta = delta
 
     def setTimeDecay(self, stock):
-        if self.daysToExpiry < 2:
+        if self.daySigma == 0 or self.durSigma == 0:
+            self.timeDecay = 0
+        elif self.daysToExpiry < 2:
             print("WARNING: One day to expiry, setting time decay to 0")
             self.timeDecay = 0
         else:
