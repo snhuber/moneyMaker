@@ -35,7 +35,7 @@ def retrieveEarningsDates(soup, date):
     earningsDates = []
     for td in tickerTd:
         # Get the ticker from contents
-        ticker = td.contents[0]
+        ticker = str(td.contents[0])
 
         # Get the time from the next next sibling 'td'
         date = datetime.datetime(date.year, date.month, date.day)

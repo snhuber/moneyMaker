@@ -1,18 +1,17 @@
 import datetime
 import pickle
+import argparse
 
 import importlib
 nasdaqScraper = importlib.import_module('nasdaqScraper')
-import importlib
 yahooScraper = importlib.import_module('yahooScraper')
 
 
 
-def main():
+def main(daysInAdvance):
     # Get the earnings dates
     today = datetime.datetime.today()
     currentDay = today
-    daysInAdvance = 5
     earningsDates = []
     earningsDatesNasdaq = []
     earningsDatesYahoo = []
@@ -47,13 +46,18 @@ def updatePickle(earningsDates):
     file = open(fileName, "w+")
     earningsDictionaryNew = {}
     for eD in earningsDates:
-        ticker = earningsDates[0]
-        date = earningsDates[1]
+        ticker = eD[0]
+        date = eD[1]
         earningsDictionaryNew[ticker] = date
 
     with open(fileName, 'wb') as handle:
         pickle.dump(earningsDictionaryNew, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
+parser = argparse.ArgumentParser(description='Scraper')
+parser.add_argument('daysInAdvance', type=int, default=30, help='The number of days to search for earnings dates')
+
 if __name__ == '__main__':
-    main()
+    namespace = parser.parse_args()
+    args = vars(namespace)
+    main(**args)

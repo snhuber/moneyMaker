@@ -41,7 +41,7 @@ def retrieveEarningDates(soup, date):
 	for companyI in range(len(companyList)):
 		# Get the tickers which are in parentheses in the company name.
 		fullName = companyList[companyI].get_text()
-		ticker = fullName[fullName.find("(") + 1 : fullName.find(")")]
+		ticker = str(fullName[fullName.find("(") + 1 : fullName.find(")")])
 
 		# Get the date without time as a datetime object then add the time to open or close
 		# depending on the timeList.

@@ -13,7 +13,9 @@ An example program is included in the file.
 
 ## Getting Started
 
-Create an Interactive Brokers account at https://gdcdyn.interactivebrokers.com/ with options trading capabilities.
+Create an Interactive Brokers account at https://gdcdyn.interactivebrokers.com/ with options trading capabilities. Go through the installation process. Before running `getOption.py`, first open and run IB Gateway.
+
+
 
 ### Installing (for Drew when he forgets)
 
@@ -22,5 +24,5 @@ Intall all the requirements:
 ```
 moneyMaker repository
 Python 3.6
-ib_insync installed (and its requirements from https://github.com/erdewit/ib_insync)
+ib_insync (and its requirements from https://github.com/erdewit/ib_insync)
 ```

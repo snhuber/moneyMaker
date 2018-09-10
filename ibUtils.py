@@ -19,6 +19,7 @@ def getTicker(contract, ib):
 	ib.cancelMktData(contract)
 	return ticker
 
+# TODO: add option for using the scraper
 def getNextEarningsDate(contract, ib):
 	xmlCalendarReport = ib.reqFundamentalData(contract, "CalendarReport")
 	try:

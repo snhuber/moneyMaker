@@ -33,7 +33,7 @@ def main(user, executeTrades, timeInterval, test):
 	# TODO: analysis tools (option price vs xsigma over time, line for stock price, bar for earnings date), (option prices at different strikes over time), (option price vs delta over time)
 
 	if test:
-		print("--------------TEST MODE---------------")
+		print("--------------TEST MODE--------------")
 
 	print(user, executeTrades, timeInterval)
 	while True:
@@ -67,6 +67,7 @@ def main(user, executeTrades, timeInterval, test):
 			print("Getting earnings date...")
 			if not test:
 				earningsDate = ibUtils.getNextEarningsDate(contract, ib)
+				print("..................................")
 			else:
 				earningsDate = datetime.date(2018, 10, 23)
 
